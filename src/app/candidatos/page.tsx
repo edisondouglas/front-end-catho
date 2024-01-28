@@ -1,19 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import request from "@/services/request-service";
-import { useRouter } from "next/navigation";
 
 interface ISkill {
   name: string;
   id: number;
 }
+interface ICandidate {
+  id: string;
+  name: string;
+  skills: string[];
+}
 
-export default function Home() {
-  const [name, setName] = useState("");
+export default function Search() {
   const [skills, setSkills] = useState<ISkill[]>([]);
   const [skill, setSkill] = useState("");
-
-  const router = useRouter();
+  const [candidates, setCandidates] = useState<ICandidate[]>([]);
+  const [skillsNameList, setSkillsNameList] = useState<string[]>([]);
 
   function addSkill() {
     if (skill.trim()) {
@@ -25,8 +28,6 @@ export default function Home() {
   async function handleForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!name.trim()) return alert("Preencha o nome do candidato");
-
     if (!skills.length && !skill.trim())
       return alert("Adicione pelo menos uma habilidade");
 
@@ -35,43 +36,31 @@ export default function Home() {
       { name: skill, id: skills.length },
     ];
 
-    const skillsNameList = skillsWithLastInput.map((skill) => skill.name);
-
-    const candidate = {
-      name,
-      skills: skillsNameList,
-    };
-
-    await request
-      .post("/candidates", candidate)
-      .then((res) => {
-        alert("Candidato cadastrado com sucesso");
-        setName("");
-        setSkills([]);
-        setSkill("");
-      })
-      .catch((err) => {
-        alert("Erro ao cadastrar candidato");
-        console.log(err);
-      });
+    setSkillsNameList(skillsWithLastInput.map((skill) => skill.name));
   }
+
+  useEffect(() => {
+    async function fetchCandidates() {
+      let url: string = "/candidates";
+      if (skillsNameList.length) {
+        url += "?skills=" + skillsNameList;
+      }
+      await request
+        .get(url)
+        .then((res) => {
+          setCandidates(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    fetchCandidates();
+  }, [skillsNameList]);
 
   return (
     <main>
-      <h5>Cadastrar candidato</h5>
-      <button onClick={() => router.push("/candidatos")}>
-        Buscar candidatos
-      </button>
       <form onSubmit={(e) => handleForm(e)}>
-        <label htmlFor="candidateName">Nome</label>
-        <input
-          type="text"
-          id="candidateName"
-          placeholder="Digite o nome do candidato"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <h5>Buscar Candidato por Habilidade</h5>
         <label htmlFor="candidateSkill">Habilidade</label>
         <ul>
           {skills.map((skillData) => (
@@ -103,8 +92,23 @@ export default function Home() {
         >
           +
         </button>
-        <button type="submit">Cadastrar</button>
+        <button type="submit">Buscar</button>
       </form>
+      <div>
+        <h5>Candidatos</h5>
+        <ul>
+          {candidates.map((candidate) => (
+            <li key={candidate.id}>
+              <p>{candidate.name}</p>
+              <ul>
+                {candidate.skills.map((skill) => (
+                  <li key={skill}>{skill}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }
