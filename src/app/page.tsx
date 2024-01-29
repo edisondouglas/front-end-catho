@@ -2,6 +2,15 @@
 import { useState } from "react";
 import request from "@/services/request-service";
 import { useRouter } from "next/navigation";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import CssBaseline from "@mui/material/CssBaseline";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import List from "@mui/material/List";
+import { ListItem, ListItemButton } from "@mui/material";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 
 interface ISkill {
   name: string;
@@ -57,54 +66,82 @@ export default function Home() {
   }
 
   return (
-    <main>
-      <h5>Cadastrar candidato</h5>
-      <button onClick={() => router.push("/candidatos")}>
-        Buscar candidatos
-      </button>
-      <form onSubmit={(e) => handleForm(e)}>
-        <label htmlFor="candidateName">Nome</label>
-        <input
-          type="text"
-          id="candidateName"
-          placeholder="Digite o nome do candidato"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <label htmlFor="candidateSkill">Habilidade</label>
-        <ul>
-          {skills.map((skillData) => (
-            <li key={skillData.id}>
-              <input
+    <Container component="main">
+      <CssBaseline />
+      <Box
+        sx={{
+          marginTop: 16,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography component="h1" variant="h5">
+          Cadastrar Candidato
+        </Typography>
+        <Box
+          component="form"
+          onSubmit={(e) => handleForm(e)}
+          noValidate
+          sx={{ mt: 1 }}
+        >
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="candidateName"
+            label="Nome do candidato"
+            name="nome"
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            type="text"
+            value={name}
+          />
+          <List>
+            {skills.map((skillData) => (
+              <ListItem key={skillData.id} style={{ padding: 0 }}>
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  type="text"
+                  id="candidateSkill"
+                  label="Habilidade"
+                  disabled
+                  value={skillData.name}
+                />
+              </ListItem>
+            ))}
+            <ListItem style={{ padding: 0 }}>
+              <TextField
+                margin="normal"
                 type="text"
                 id="candidateSkill"
-                placeholder="TypeScript"
-                disabled
-                value={skillData.name}
+                label="Adicionar habilidade"
+                onChange={(e) => setSkill(e.target.value)}
+                value={skill}
               />
-            </li>
-          ))}
-          <li>
-            <input
-              type="text"
-              id="candidateSkill"
-              placeholder="TypeScript..."
-              onChange={(e) => setSkill(e.target.value)}
-              value={skill}
-            />
-          </li>
-        </ul>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            addSkill();
-          }}
-        >
-          +
-        </button>
-        <button type="submit">Cadastrar</button>
-      </form>
-    </main>
+              <ListItemButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  addSkill();
+                }}
+              >
+                <AddBoxOutlinedIcon />
+              </ListItemButton>
+            </ListItem>
+          </List>
+          <Button
+            sx={{ m: 1 }}
+            variant="contained"
+            onClick={() => router.push("/candidatos")}
+          >
+            Buscar candidatos
+          </Button>
+          <Button sx={{ m: 1 }} variant="contained" type="submit">
+            Cadastrar
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 }
